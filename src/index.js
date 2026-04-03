@@ -1,6 +1,11 @@
 import { config } from './config.js';
 import { isDesktopDevice } from './device.js';
-import { applyCorsHeaders, buildCorsHeaders, buildRequestHeaders } from './headers.js';
+import {
+  applyCorsHeaders,
+  buildCorsHeaders,
+  buildRequestHeaders,
+  rewriteUpstreamResponseHeaders
+} from './headers.js';
 import { replaceResponseText } from './html.js';
 
 export default {
@@ -54,6 +59,7 @@ async function fetchAndApply(request) {
   });
 
   const responseHeaders = new Headers(upstreamResponse.headers);
+  rewriteUpstreamResponseHeaders(responseHeaders, upstreamDomain, originalHost);
   applyCorsHeaders(responseHeaders, request);
   responseHeaders.delete('content-security-policy');
   responseHeaders.delete('content-security-policy-report-only');
