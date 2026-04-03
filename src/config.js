@@ -5,6 +5,11 @@ export const config = {
   upstreamMobile: 'duck.ai',
   blockedRegions: [''],
   blockedIpAddresses: ['127.0.0.1'],
+  localStorageDefaults: {
+    duckaiReasoningMode: 'reasoning',
+    duckaiReasoningUsed: 'true',
+    duckaiHasAgreedToTerms: 'true'
+  },
   rawModeParam: '__duckai_raw',
   bannerHtml: bannerHtml,
   bannerCookieName: 'banner_closed',
