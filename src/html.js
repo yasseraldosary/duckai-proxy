@@ -182,28 +182,16 @@ function injectBanner(text, config) {
       return;
     }
 
-    var pageRoot = null;
-    var rootStyleCache = null;
+    var bodyStyleCache = {
+      boxSizing: body.style.boxSizing,
+      paddingTop: body.style.paddingTop,
+      height: body.style.height,
+      minHeight: body.style.minHeight,
+      maxHeight: body.style.maxHeight,
+      overflow: body.style.overflow
+    };
     var bodyClientHeightPatched = false;
     var resizeObserver = null;
-
-    function findPageRoot() {
-      var children = Array.from(body.children);
-      for (var index = 0; index < children.length; index += 1) {
-        var child = children[index];
-        if (child.id === 'site-banner') {
-          continue;
-        }
-
-        if (child.tagName === 'SCRIPT' || child.tagName === 'STYLE' || child.tagName === 'NOSCRIPT') {
-          continue;
-        }
-
-        return child;
-      }
-
-      return null;
-    }
 
     function patchBodyClientHeight() {
       if (bodyClientHeightPatched) {
@@ -240,42 +228,12 @@ function injectBanner(text, config) {
       var previousOffset = state.offset || 0;
       state.offset = bannerHeight;
       html.style.setProperty('--site-banner-height', bannerHeight + 'px');
-
-      pageRoot = findPageRoot();
-      if (!pageRoot) {
-        if (bannerHeight !== previousOffset) {
-          window.dispatchEvent(new Event('resize'));
-        }
-        return;
-      }
-
-      if (!rootStyleCache || rootStyleCache.element !== pageRoot) {
-        if (rootStyleCache && rootStyleCache.element && rootStyleCache.element.isConnected) {
-          rootStyleCache.element.style.boxSizing = rootStyleCache.boxSizing;
-          rootStyleCache.element.style.marginTop = rootStyleCache.marginTop;
-          rootStyleCache.element.style.minHeight = rootStyleCache.minHeight;
-          rootStyleCache.element.style.height = rootStyleCache.height;
-          rootStyleCache.element.style.maxHeight = rootStyleCache.maxHeight;
-        }
-
-        rootStyleCache = {
-          element: pageRoot,
-          boxSizing: pageRoot.style.boxSizing,
-          marginTop: pageRoot.style.marginTop,
-          minHeight: pageRoot.style.minHeight,
-          height: pageRoot.style.height,
-          maxHeight: pageRoot.style.maxHeight
-        };
-      }
-
-      pageRoot.style.boxSizing = 'border-box';
-      pageRoot.style.marginTop = bannerHeight + 'px';
-      pageRoot.style.minHeight = 'calc(100vh - ' + bannerHeight + 'px)';
-      pageRoot.style.height = 'calc(100vh - ' + bannerHeight + 'px)';
-      pageRoot.style.maxHeight = 'calc(100vh - ' + bannerHeight + 'px)';
-      pageRoot.style.minHeight = 'calc(100dvh - ' + bannerHeight + 'px)';
-      pageRoot.style.height = 'calc(100dvh - ' + bannerHeight + 'px)';
-      pageRoot.style.maxHeight = 'calc(100dvh - ' + bannerHeight + 'px)';
+      body.style.boxSizing = 'border-box';
+      body.style.paddingTop = bannerHeight + 'px';
+      body.style.height = '100dvh';
+      body.style.minHeight = '100dvh';
+      body.style.maxHeight = '100dvh';
+      body.style.overflow = 'hidden';
 
       if (bannerHeight !== previousOffset) {
         window.dispatchEvent(new Event('resize'));
@@ -298,14 +256,12 @@ function injectBanner(text, config) {
       }
 
       state.offset = 0;
-      if (rootStyleCache && rootStyleCache.element && rootStyleCache.element.isConnected) {
-        rootStyleCache.element.style.boxSizing = rootStyleCache.boxSizing;
-        rootStyleCache.element.style.marginTop = rootStyleCache.marginTop;
-        rootStyleCache.element.style.minHeight = rootStyleCache.minHeight;
-        rootStyleCache.element.style.height = rootStyleCache.height;
-        rootStyleCache.element.style.maxHeight = rootStyleCache.maxHeight;
-      }
-
+      body.style.boxSizing = bodyStyleCache.boxSizing;
+      body.style.paddingTop = bodyStyleCache.paddingTop;
+      body.style.height = bodyStyleCache.height;
+      body.style.minHeight = bodyStyleCache.minHeight;
+      body.style.maxHeight = bodyStyleCache.maxHeight;
+      body.style.overflow = bodyStyleCache.overflow;
       html.classList.remove('site-banner-active');
       body.classList.remove('site-banner-active');
       html.style.removeProperty('--site-banner-height');
