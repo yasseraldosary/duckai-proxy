@@ -7,8 +7,8 @@ export async function replaceResponseText(response, upstreamDomain, hostName, re
     text = text.replace(new RegExp(source, 'g'), target);
   }
 
-  if (!hasClosedProjectBanner(request, config.projectBannerCookieName)) {
-    text = injectProjectBanner(text, config);
+  if (!hasClosedBanner(request, config.bannerCookieName)) {
+    text = injectBanner(text, config);
   }
 
   return text;
@@ -26,20 +26,20 @@ function resolveReplacementValue(value, upstreamDomain, hostName) {
   return value;
 }
 
-function hasClosedProjectBanner(request, cookieName) {
+function hasClosedBanner(request, cookieName) {
   const cookieHeader = request.headers.get('Cookie') || '';
   const cookiePattern = new RegExp(`(?:^|;\\s*)${cookieName}=1(?:;|$)`);
   return cookiePattern.test(cookieHeader);
 }
 
-function injectProjectBanner(text, config) {
-  if (text.includes('id="duckai-project-banner"')) {
+function injectBanner(text, config) {
+  if (text.includes('id="site-banner"')) {
     return text;
   }
 
   const bannerMarkup = `
 <style>
-  #duckai-project-banner {
+  #site-banner {
     position: sticky;
     top: 0;
     z-index: 2147483647;
@@ -55,13 +55,13 @@ function injectProjectBanner(text, config) {
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
   }
 
-  #duckai-project-banner a {
+  #site-banner a {
     color: #93c5fd;
     text-decoration: underline;
     word-break: break-all;
   }
 
-  #duckai-project-banner button {
+  #site-banner button {
     position: absolute;
     top: 50%;
     right: 12px;
@@ -75,13 +75,13 @@ function injectProjectBanner(text, config) {
     padding: 4px;
   }
 </style>
-<div id="duckai-project-banner" role="banner">
-  <span>项目地址：<a href="${config.projectUrl}" target="_blank" rel="noopener noreferrer">${config.projectUrl}</a></span>
+<div id="site-banner" role="banner">
+  ${config.bannerHtml || '<span></span>'}
   <button type="button" aria-label="关闭横幅">&times;</button>
 </div>
 <script>
   (function () {
-    var banner = document.getElementById('duckai-project-banner');
+    var banner = document.getElementById('site-banner');
     if (!banner) {
       return;
     }
@@ -92,7 +92,7 @@ function injectProjectBanner(text, config) {
     }
 
     closeButton.addEventListener('click', function () {
-      document.cookie = '${config.projectBannerCookieName}=1; path=/; max-age=${config.projectBannerCookieMaxAge}; SameSite=Lax; Secure';
+      document.cookie = '${config.bannerCookieName}=1; path=/; max-age=${config.bannerCookieMaxAge}; SameSite=Lax; Secure';
       banner.remove();
     });
   })();
