@@ -44,7 +44,6 @@ function isRawModeRequest(request, rawModeParam) {
 
 function buildBannerShell(text, request, config, rawModeParam) {
   const iframeUrl = JSON.stringify(buildRawModeUrl(request.url, rawModeParam));
-  const cleanUrl = JSON.stringify(buildCleanUrl(request.url, rawModeParam));
   const cookieName = JSON.stringify(config.bannerCookieName);
   const cookieMaxAge = JSON.stringify(config.bannerCookieMaxAge);
   const title = escapeHtml(extractTitle(text) || 'duck.ai');
@@ -121,14 +120,17 @@ function buildBannerShell(text, request, config, rawModeParam) {
   <iframe id="site-frame" src=${iframeUrl} referrerpolicy="same-origin" allow="clipboard-read; clipboard-write"></iframe>
   <script>
     (function () {
+      var body = document.body;
+      var banner = document.getElementById('site-banner');
       var closeButton = document.querySelector('#site-banner button');
-      if (!closeButton) {
+      if (!body || !banner || !closeButton) {
         return;
       }
 
       closeButton.addEventListener('click', function () {
         document.cookie = ${cookieName} + '=1; path=/; max-age=' + ${cookieMaxAge} + '; SameSite=Lax; Secure';
-        window.location.replace(${cleanUrl});
+        banner.remove();
+        body.style.gridTemplateRows = 'minmax(0, 1fr)';
       });
     })();
   </script>
@@ -231,13 +233,6 @@ function buildRawModeUrl(urlString, rawModeParam) {
   url.searchParams.set(rawModeParam, '1');
   return url.toString();
 }
-
-function buildCleanUrl(urlString, rawModeParam) {
-  const url = new URL(urlString);
-  url.searchParams.delete(rawModeParam);
-  return url.toString();
-}
-
 function extractTitle(text) {
   const match = text.match(/<title[^>]*>([\s\S]*?)<\/title>/i);
   return match ? decodeHtmlEntities(match[1].trim()) : '';
